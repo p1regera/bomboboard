@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
+    "kill-dev": "zsh scripts/kill-dev.sh",
     "build": "next build",
     "start": "next start"
   },
