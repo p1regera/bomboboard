@@ -194,136 +194,103 @@ export default function Home() {
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-      <motion.section
-        className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center text-center"
-        initial={{ opacity: 0, y: 32 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
-      >
-        <motion.h1
-          className="mb-[60px] text-5xl font-extralight uppercase tracking-[0.35em] text-white md:text-7xl"
-          style={{
-            textShadow:
-              '0 0 30px rgba(179,98,255,0.8), 0 0 60px rgba(0,148,255,0.4)',
-          }}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: 'easeOut' }}
-        >
-          BOMBOBOARD
-        </motion.h1>
-
-        <motion.p
-          className="mb-8 text-xs uppercase tracking-[0.7em] text-[#b362ff]"
-          style={{ textShadow: '0 0 20px rgba(179,98,255,0.4)' }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.85 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-        >
-          tap to play
-        </motion.p>
-
-        <motion.div
-          className="grid w-full max-w-[600px] grid-cols-3 gap-5 mx-auto"
-          style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}
-          initial="hidden"
-          animate="show"
-          variants={{
-            hidden: { opacity: 0, y: 24 },
-            show: {
-              opacity: 1,
-              y: 0,
-              transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-            },
-          }}
-        >
-          {SOUND_LIBRARY.map((sound, index) => (
-            <motion.div
-              key={sound.name}
-              className="group relative aspect-square w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
-              style={{
-                minHeight: 'clamp(100px, 20vw, 140px)',
-                maxHeight: '140px',
-              }}
-              variants={{
-                hidden: { opacity: 0, y: 40 },
-                show: { opacity: 1, y: 0 },
-              }}
-              animate={{ y: [0, -4, 0] }}
-              transition={{
-                delay: index * 0.05,
-                duration: 5,
-                repeat: Infinity,
-                repeatType: 'mirror',
-                ease: 'easeInOut',
-              }}
-              whileHover={{
-                scale: 1.02,
-                boxShadow: '0 0 35px rgba(179,98,255,0.35)',
-                borderColor: 'rgba(179, 98, 255, 0.9)',
-              }}
-              whileTap={{
-                scale: 0.97,
-                boxShadow: '0 0 30px rgba(0,212,255,0.4)',
-              }}
-            >
-              <div className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      'radial-gradient(circle at top, rgba(179,98,255,0.2), transparent 65%)',
-                  }}
-                />
-              </div>
-
-              <AnimatePresence>
-                {ripple?.name === sound.name && (
-                  <motion.span
-                    key={ripple.id}
-                    className="pointer-events-none absolute inset-0 rounded-2xl"
-                    style={{
-                      background:
-                        'radial-gradient(circle, rgba(0,212,255,0.35) 0%, transparent 60%)',
-                    }}
-                    initial={{ opacity: 0.8, scale: 0.2 }}
-                    animate={{ opacity: 0, scale: 1.05 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.45, ease: 'easeOut' }}
-                  />
-                )}
-              </AnimatePresence>
-
-              <button
-                type="button"
-                onClick={() => handlePlay(sound)}
-                className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b362ff] focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
-                aria-label={`Play ${sound.name}`}
-              >
-                <div className="text-4xl text-white drop-shadow-[0_0_25px_rgba(0,212,255,0.55)] md:text-5xl">
-                  {sound.emoji}
-                </div>
-                <div className="text-[0.65rem] uppercase tracking-[0.35em] text-white/80 md:text-sm">
-                  {sound.name}
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  shareSound(sound);
+      <section className="relative z-10 w-full">
+        <div className="relative min-h-screen">
+          <div className="mx-auto w-full max-w-[90vw] px-[5%] md:max-w-[80vw] md:px-[10%]">
+            <div className="pt-12 pb-8 text-center md:pt-16 md:pb-12">
+              <h1
+                className="mb-[60px] text-5xl font-extralight uppercase tracking-[0.35em] text-white md:text-7xl"
+                style={{
+                  textShadow:
+                    '0 0 30px rgba(179,98,255,0.8), 0 0 60px rgba(0,148,255,0.4)',
                 }}
-                className="absolute top-4 right-4 z-20 rounded-full bg-white/10 p-1 text-white/60 transition hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-                aria-label={`Share ${sound.name}`}
               >
-                <ShareIcon size={16} />
-              </button>
-            </motion.div>
-          ))}
-        </motion.div>
-      </motion.section>
+                BOMBOBOARD
+              </h1>
+
+              <p
+                className="text-xs uppercase tracking-[0.7em] text-[#b362ff]"
+                style={{ textShadow: '0 0 20px rgba(179,98,255,0.4)' }}
+              >
+                tap to play
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-[2vw] md:gap-[3vw] max-w-2xl mx-auto">
+              {SOUND_LIBRARY.map((sound) => (
+                <motion.div
+                  key={sound.name}
+                  className="group relative aspect-square w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
+                  style={{
+                    minHeight: 'clamp(120px, 25vw, 140px)',
+                    maxHeight: '140px',
+                  }}
+                  whileHover={{
+                    scale: 1.02,
+                    borderColor: 'rgba(179, 98, 255, 0.9)',
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.1, ease: 'easeOut' }}
+                >
+                  <div className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          'radial-gradient(circle at top, rgba(179,98,255,0.2), transparent 65%)',
+                      }}
+                    />
+                  </div>
+
+                  <AnimatePresence>
+                    {ripple?.name === sound.name && (
+                      <motion.span
+                        key={ripple.id}
+                        className="pointer-events-none absolute inset-0 rounded-2xl"
+                        style={{
+                          background:
+                            'radial-gradient(circle, rgba(0,212,255,0.35) 0%, transparent 60%)',
+                        }}
+                        initial={{ opacity: 0.8, scale: 0.2 }}
+                        animate={{ opacity: 0, scale: 1.05 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.45, ease: 'easeOut' }}
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePlay(sound)}
+                    className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b362ff] focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
+                    aria-label={`Play ${sound.name}`}
+                  >
+                    <div className="text-4xl text-white drop-shadow-[0_0_25px_rgba(0,212,255,0.55)] md:text-5xl">
+                      {sound.emoji}
+                    </div>
+                    <div className="text-[0.65rem] uppercase tracking-[0.35em] text-white/80 md:text-sm">
+                      {sound.name}
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      shareSound(sound);
+                    }}
+                    className="absolute top-4 right-4 z-20 rounded-full bg-white/10 p-1 text-white/60 transition hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    aria-label={`Share ${sound.name}`}
+                  >
+                    <ShareIcon size={16} />
+                  </button>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       <AnimatePresence>
         {toast && (
