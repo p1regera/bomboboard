@@ -12,12 +12,13 @@ const inter = Inter({
 });
 
 const SOUND_LIBRARY = [
-  { name: 'Bomboclat', emoji: '💣', file: 'bomboclat.mp3' },
-  { name: 'Bruh', emoji: '😐', file: 'bruh.mp3' },
-  { name: 'Vine Boom', emoji: '💥', file: 'vine-boom.mp3' },
-  { name: 'Oh No', emoji: '😱', file: 'oh-no.mp3' },
-  { name: 'Wow', emoji: '😮' },
-  { name: 'Sad', emoji: '😢' },
+  { name: 'BOMBOCLAT', emoji: '💣', file: 'bomboclat.mp3' },
+  { name: 'ANIME MOAN', emoji: '😳', file: 'anime_moan.mp3' },
+  { name: 'AMONG US IMPOSTER', emoji: '👽', file: 'among_us_imposter.mp3' },
+  { name: 'DISCORD CALL', emoji: '📞', file: 'discord_call.mp3' },
+  { name: 'FAHHHH', emoji: '😤', file: 'fahhhh.mp3' },
+  { name: 'FORTNITE DOWN', emoji: '🎮', file: 'fortnite_down.mp3' },
+  { name: 'SMOKE DETECTOR', emoji: '🚨', file: 'smoke_detector.mp3' },
 ];
 
 const resolveSoundUrl = (sound) => {
@@ -28,6 +29,13 @@ const resolveSoundUrl = (sound) => {
     return `/sounds/${sound.file}`;
   }
   return null;
+};
+
+const sanitizeFileName = (name = '') => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
 };
 
 const ShareIcon = ({ size = 18 }) => (
@@ -67,6 +75,8 @@ export default function Home() {
   const [toast, setToast] = useState(null);
   const [ripple, setRipple] = useState(null);
   const toastTimer = useRef(null);
+  const activeSoundRef = useRef(null);
+  const fileCacheRef = useRef(new Map());
 
   const players = useMemo(() => {
     const registry = new Map();
@@ -113,13 +123,30 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [ripple]);
 
+  const stopAllSounds = useCallback(() => {
+    players.forEach((howl) => {
+      if (howl.playing()) {
+        howl.stop();
+      }
+    });
+    activeSoundRef.current = null;
+  }, [players]);
+
   const handlePlay = useCallback(
     (sound) => {
       const howl = players.get(sound.name);
-      if (howl) {
-        howl.stop();
-        howl.play();
+      if (!howl) {
+        return;
       }
+
+      stopAllSounds();
+      howl.play();
+      activeSoundRef.current = sound.name;
+      howl.once('end', () => {
+        if (activeSoundRef.current === sound.name) {
+          activeSoundRef.current = null;
+        }
+      });
 
       triggerRipple(sound.name);
 
@@ -127,7 +154,7 @@ export default function Home() {
         navigator.vibrate(10);
       }
     },
-    [players, triggerRipple]
+    [players, stopAllSounds, triggerRipple]
   );
 
   const shareSound = useCallback(
@@ -144,7 +171,48 @@ export default function Home() {
           : `${window.location.origin}${relativeUrl}`
         : window.location.href;
 
+      const fetchShareFile = async () => {
+        if (
+          typeof File === 'undefined' ||
+          !relativeUrl ||
+          fileCacheRef.current.has(shareUrl)
+        ) {
+          return fileCacheRef.current.get(shareUrl);
+        }
+
+        const response = await fetch(shareUrl);
+        if (!response.ok) {
+          throw new Error('Failed to download sound');
+        }
+        const blob = await response.blob();
+        const extensionMatch = shareUrl.match(/\.([a-z0-9]+)(?:\?|#)?$/i);
+        const extension = extensionMatch ? extensionMatch[1] : 'mp3';
+        const file = new File([blob], `${sanitizeFileName(sound.name) || 'sound'}.${extension}`, {
+          type: blob.type || 'audio/mpeg',
+          lastModified: Date.now(),
+        });
+        fileCacheRef.current.set(shareUrl, file);
+        return file;
+      };
+
       if (nav?.share) {
+        if (nav.canShare) {
+          try {
+            const shareFile = await fetchShareFile();
+            if (shareFile && nav.canShare({ files: [shareFile] })) {
+              await nav.share({
+                files: [shareFile],
+                title: `${sound.name} - Bomboboard`,
+                text: 'Drop this straight into iMessage 📲',
+              });
+              showToast('Opening share sheet…');
+              return;
+            }
+          } catch (error) {
+            console.error('File share failed', error);
+          }
+        }
+
         try {
           await nav.share({
             title: `${sound.name} - Bomboboard`,
@@ -179,51 +247,51 @@ export default function Home() {
       className={`${inter.className} relative flex min-h-screen flex-col overflow-hidden p-6 text-white md:p-12`}
       style={{
         backgroundImage:
-          'radial-gradient(circle at 20% -10%, rgba(179,98,255,0.35), transparent 35%), radial-gradient(circle at 80% 0%, rgba(0,148,255,0.3), transparent 40%), linear-gradient(135deg, #0a0a1a 0%, #02020c 50%, #000000 100%)',
+          'radial-gradient(circle at 15% 20%, rgba(148,163,255,0.35), transparent 60%), radial-gradient(circle at 80% 0%, rgba(64,224,208,0.25), transparent 55%), linear-gradient(135deg, #050914 0%, #0d1527 45%, #17203b 100%)',
       }}
     >
       <motion.div
-        className="pointer-events-none absolute inset-0 opacity-30"
+        className="pointer-events-none absolute inset-0 opacity-25"
         style={{
           backgroundImage:
-            'linear-gradient(120deg, rgba(0,212,255,0.2) 1px, transparent 1px), linear-gradient(300deg, rgba(179,98,255,0.2) 1px, transparent 1px)',
-          backgroundSize: '240px 240px',
+            'linear-gradient(120deg, rgba(64,224,208,0.12) 1px, transparent 1px), linear-gradient(300deg, rgba(167,139,250,0.16) 1px, transparent 1px)',
+          backgroundSize: '220px 220px',
         }}
-        animate={{ backgroundPosition: ['0px 0px', '200px 120px'] }}
-        transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+        animate={{ backgroundPosition: ['0px 0px', '180px 110px'] }}
+        transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#05060f]/60 via-transparent to-transparent" />
 
       <section className="relative z-10 w-full">
         <div className="relative min-h-screen">
-          <div className="mx-auto w-full max-w-[90vw] px-[5%] md:max-w-[80vw] md:px-[10%]">
+          <div className="mx-auto w-full max-w-[90vw] px-[5%] text-white/90 md:max-w-[80vw] md:px-[10%]">
             <div className="pt-12 pb-8 text-center md:pt-16 md:pb-12">
               <h1
-                className="mb-[60px] text-5xl font-extralight uppercase tracking-[0.35em] text-white md:text-7xl"
+                className="mb-[60px] text-5xl font-extralight uppercase tracking-[0.35em] text-white drop-shadow-[0_15px_45px_rgba(10,12,25,0.6)] md:text-7xl"
                 style={{
                   textShadow:
-                    '0 0 30px rgba(179,98,255,0.8), 0 0 60px rgba(0,148,255,0.4)',
+                    '0 0 25px rgba(167,139,250,0.65), 0 0 55px rgba(64,224,208,0.35)',
                 }}
               >
                 BOMBOBOARD
               </h1>
 
               <p
-                className="text-xs uppercase tracking-[0.7em] text-[#b362ff]"
-                style={{ textShadow: '0 0 20px rgba(179,98,255,0.4)' }}
+                className="text-xs uppercase tracking-[0.7em] text-[#c6b5ff]"
+                style={{ textShadow: '0 0 18px rgba(198,181,255,0.45)' }}
               >
                 tap to play
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-[2vw] md:gap-[3vw] max-w-2xl mx-auto">
+            <div className="mx-auto grid max-w-2xl grid-cols-3 gap-[2vw] md:gap-[3vw]">
               {SOUND_LIBRARY.map((sound) => (
                 <motion.div
                   key={sound.name}
-                  className="group relative aspect-square w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
+                  className="group relative aspect-square w-full overflow-hidden rounded-[1.7rem] border border-white/15 bg-gradient-to-br from-white/12 via-white/6 to-transparent/5 p-5 shadow-[0_25px_60px_rgba(5,6,15,0.45)] backdrop-blur-2xl"
                   style={{
-                    minHeight: 'clamp(120px, 25vw, 140px)',
-                    maxHeight: '140px',
+                    minHeight: 'clamp(120px, 24vw, 150px)',
+                    maxHeight: '150px',
                   }}
                   whileHover={{
                     scale: 1.02,
@@ -237,7 +305,7 @@ export default function Home() {
                       className="absolute inset-0"
                       style={{
                         background:
-                          'radial-gradient(circle at top, rgba(179,98,255,0.2), transparent 65%)',
+                          'radial-gradient(circle at 30% 20%, rgba(167,139,250,0.25), transparent 60%)',
                       }}
                     />
                   </div>
@@ -246,10 +314,10 @@ export default function Home() {
                     {ripple?.name === sound.name && (
                       <motion.span
                         key={ripple.id}
-                        className="pointer-events-none absolute inset-0 rounded-2xl"
+                        className="pointer-events-none absolute inset-0 rounded-[1.7rem]"
                         style={{
                           background:
-                            'radial-gradient(circle, rgba(0,212,255,0.35) 0%, transparent 60%)',
+                            'radial-gradient(circle, rgba(64,224,208,0.4) 0%, transparent 60%)',
                         }}
                         initial={{ opacity: 0.8, scale: 0.2 }}
                         animate={{ opacity: 0, scale: 1.05 }}
@@ -262,13 +330,13 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => handlePlay(sound)}
-                    className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b362ff] focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
+                    className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl text-center text-white/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b362ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0f1e]"
                     aria-label={`Play ${sound.name}`}
                   >
-                    <div className="text-4xl text-white drop-shadow-[0_0_25px_rgba(0,212,255,0.55)] md:text-5xl">
+                    <div className="text-4xl text-white drop-shadow-[0_0_28px_rgba(82,197,255,0.55)] md:text-5xl">
                       {sound.emoji}
                     </div>
-                    <div className="text-[0.65rem] uppercase tracking-[0.35em] text-white/80 md:text-sm">
+                    <div className="text-[0.65rem] uppercase tracking-[0.4em] text-white/75 md:text-sm">
                       {sound.name}
                     </div>
                   </button>
@@ -280,7 +348,7 @@ export default function Home() {
                       event.stopPropagation();
                       shareSound(sound);
                     }}
-                    className="absolute top-4 right-4 z-20 rounded-full bg-white/10 p-1 text-white/60 transition hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    className="absolute top-4 right-4 z-20 rounded-full bg-white/10 p-1 text-white/70 transition hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                     aria-label={`Share ${sound.name}`}
                   >
                     <ShareIcon size={16} />
