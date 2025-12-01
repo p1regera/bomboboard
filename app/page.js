@@ -172,11 +172,11 @@ export default function Home() {
         : window.location.href;
 
       const fetchShareFile = async () => {
-        if (
-          typeof File === 'undefined' ||
-          !relativeUrl ||
-          fileCacheRef.current.has(shareUrl)
-        ) {
+        if (typeof File === 'undefined' || !relativeUrl) {
+          return null;
+        }
+
+        if (fileCacheRef.current.has(shareUrl)) {
           return fileCacheRef.current.get(shareUrl);
         }
 
@@ -202,8 +202,6 @@ export default function Home() {
             if (shareFile && nav.canShare({ files: [shareFile] })) {
               await nav.share({
                 files: [shareFile],
-                title: `${sound.name} - Bomboboard`,
-                text: 'Drop this straight into iMessage 📲',
               });
               showToast('Opening share sheet…');
               return;
@@ -288,16 +286,15 @@ export default function Home() {
               {SOUND_LIBRARY.map((sound) => (
                 <motion.div
                   key={sound.name}
-                  className="group relative aspect-square w-full overflow-hidden rounded-[1.7rem] border border-white/15 bg-gradient-to-br from-white/12 via-white/6 to-transparent/5 p-5 shadow-[0_25px_60px_rgba(5,6,15,0.45)] backdrop-blur-2xl"
+                  className="group relative aspect-square w-full overflow-hidden rounded-[1.7rem] bg-gradient-to-br from-white/12 via-white/6 to-transparent/5 p-5 shadow-[0_25px_60px_rgba(5,6,15,0.45)] backdrop-blur-2xl"
                   style={{
                     minHeight: 'clamp(120px, 24vw, 150px)',
                     maxHeight: '150px',
                   }}
                   whileHover={{
                     scale: 1.02,
-                    borderColor: 'rgba(179, 98, 255, 0.9)',
+                    boxShadow: '0 35px 80px rgba(12,15,30,0.65)',
                   }}
-                  whileTap={{ scale: 0.98 }}
                   transition={{ duration: 0.1, ease: 'easeOut' }}
                 >
                   <div className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
@@ -329,9 +326,23 @@ export default function Home() {
 
                   <button
                     type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      shareSound(sound);
+                    }}
+                    className="absolute top-2 right-2 z-30 rounded-full bg-[#070d1d]/85 p-2 text-white/70 shadow-[0_8px_22px_rgba(0,0,0,0.55)] backdrop-blur-md transition duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 active:scale-95"
+                    aria-label={`Share ${sound.name}`}
+                  >
+                    <ShareIcon size={14} />
+                  </button>
+
+                  <motion.button
+                    type="button"
                     onClick={() => handlePlay(sound)}
                     className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl text-center text-white/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b362ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0f1e]"
                     aria-label={`Play ${sound.name}`}
+                    whileTap={{ scale: 0.97 }}
                   >
                     <div className="text-4xl text-white drop-shadow-[0_0_28px_rgba(82,197,255,0.55)] md:text-5xl">
                       {sound.emoji}
@@ -339,20 +350,7 @@ export default function Home() {
                     <div className="text-[0.65rem] uppercase tracking-[0.4em] text-white/75 md:text-sm">
                       {sound.name}
                     </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      shareSound(sound);
-                    }}
-                    className="absolute top-4 right-4 z-20 rounded-full bg-white/10 p-1 text-white/70 transition hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-                    aria-label={`Share ${sound.name}`}
-                  >
-                    <ShareIcon size={16} />
-                  </button>
+                  </motion.button>
                 </motion.div>
               ))}
             </div>
